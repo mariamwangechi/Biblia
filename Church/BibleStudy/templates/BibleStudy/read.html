@@ -1,0 +1,173 @@
+{% extends 'Users/base.html' %}
+{% load custom_filters %}
+{% block content %}
+
+<br><br><br><br>
+
+<div class="content-container" >
+  <div class="container">
+    <br><br>
+    <div style="display: flex;">
+    <div class="dropdown">
+      <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {{ bible_id }}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-dark">
+        {% for version in versions %}
+          <li ><a class="dropdown-item" href="{% url 'read' version book chapter %}">{{ version }}</a></li>
+        {% endfor %}
+        
+      </ul>
+    </div>
+
+    <div class="dropdown" style="padding-left: 10px;">
+      <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {{ book }}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-dark">
+        {% for book_name in books %}
+          <li ><a class="dropdown-item" href="{% url 'read' bible_uid book_name chapter %}">{{ book_name }}</a></li>
+        {% endfor %}
+        
+      </ul>
+    </div>
+
+    <div class="dropdown" style="padding-left: 10px;">
+      <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {{ chapter }}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-dark">
+        {% for chapter in chapters %}
+          <li ><a class="dropdown-item" href="{% url 'read' bible_uid book chapter.order %}">{{ chapter.order }}</a></li>
+        {% endfor %}
+        
+      </ul>
+    </div>
+    </div>
+    <br><br>
+    
+
+    <br>
+    
+
+    
+     
+
+    
+
+<div class="read-view">
+  <div class="text-center">
+    <a class="btn btn-info" href="{% url 'save-progress' chapter_id %}">Save</a>
+</div>
+<br><br>
+  {% for verse in data %}
+    <p class="p" onclick="showPopup('{{ verse.verse }}')" >{{ verse.verse }} {{ verse.text }}</p>
+  {% endfor %}
+  
+
+
+
+
+    
+
+</div>
+
+
+</div>
+
+<div class="bookmark-card" id="bookmark" style="display: none;">
+  <div class="spinner-grow text-danger top-right" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <h6 style="color:fuchsia;"><i class="bi bi-bookmark"> </i>BookMark</h6>
+  
+    <input name="verse" id ='verse' style="display: none;">
+    <p>Add <strong style="color: coral;">{{ book }} {{ chapter }}:<span id="clickedVerse"></span></strong> to bookmark.</p>
+    <div class="bookmark-btn">
+      <button  class="btn btn-info" id="saveBookmarkBtn">Save</button>
+      <button class="btn btn-danger" id="cancel">Cancel</button>
+    </div>
+
+    
+
+
+  <!-- Use a span to display the clicked verse ID dynamically -->
+  
+</div>
+
+
+
+<script>
+  function showPopup(verseId) {
+      // ... your existing code
+      // Assuming you have the following context variables
+      var book = "{{ book }}";
+      var chapter = "{{ chapter }}";
+
+      // Set the value of the hidden input for the verse ID
+      $('#clickedVerse').val(verseId);
+      $('#clickedVerse').text(verseId);
+      $('#verse').val(verseId);
+      var x = event.pageX;
+      var y = event.pageY;
+
+      // Set the position of the bookmark card
+      $('#bookmark').css({
+          position: 'absolute',
+          top: y + 'px',
+          left: x + 'px',
+          display: 'block',
+      });
+
+      // Show the bookmark form
+      $('#bookmark').show();
+  }
+
+  $(document).ready(function () {
+        // Get the CSRF token using Django's template tag
+        var csrftoken = "{{ csrf_token }}";
+
+        $('#saveBookmarkBtn').on('click', function () {
+            // Get the values you want to send
+            var verseId = $('#clickedVerse').val();
+            var book = "{{ book }}";
+            var chapter = "{{ chapter }}";
+            var user = "{{ user }}";
+            $('#bookmark').hide();
+
+            // AJAX request
+            $.ajax({
+                url: '{% url "bookmark" %}',  // Replace with your actual URL
+                method: 'POST',
+                data: {
+                    'book': book,
+                    'chapter': chapter,
+                    'verse_id': verseId,
+                    'user': user,
+                    // Add more variables if needed
+                },
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                success: function (data) {
+                    // Handle success response
+                    console.log('Bookmark saved successfully');
+                    // Optionally, you can perform additional actions here
+                },
+                error: function (error) {
+                    // Handle error response
+                    console.error('Error saving bookmark:', error);
+                    // Optionally, you can display an error message or perform other actions
+                }
+            });
+        });
+    });
+</script>
+
+</div>
+
+
+
+
+
+{% endblock %}
